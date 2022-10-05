@@ -1,2 +1,2 @@
 # bari
-Bari programming language
+Baritone programming language
