@@ -1,0 +1,12 @@
+terminal.update([]"Hello") #Updates the current line
+terminal.update([n]"World") #Adds a line
+if [1=2]: {
+  terminal.update([n]"This script shouldn't run.")
+};
+if [1=1]: {
+  terminal.update([n]"This script should run.")
+};
+def.var test="chicken"
+terminal.update([n] |test|)
+edit.var test="nuggets"
+terminal.update([n] |test|)

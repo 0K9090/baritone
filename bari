@@ -1,0 +1,59 @@
+#define functions
+cchar() {
+  l={cl:$c:1}
+}
+if [ "$1" == --help ]; then
+  echo "Usage: bari [args] [FILE]"
+  echo
+  echo "  --help      Show this help screen"
+  exit
+fi
+if [ h"$2" == h ]; then
+  path=$1
+else
+  #arg scripts here
+  path=$2
+fi
+if ! [ h"$path" == h ]; then
+  if ! [ -f $path ]; then
+    echo "bari: file doesn't exist"
+    exit
+  fi
+  while :; do
+    e="${path#*.}"
+    if ! [[ "$e" == *"."* ]]; then
+      break
+    fi
+  done
+  if ! [ "$e" == btsc ]; then
+    echo "bari: wrong file extension"
+    echo "  Must be .btsc file"
+    echo "  Your file extention: $e"
+    exit
+  fi
+  a=0
+  length=$(sed -n '$=' $path)
+  while :; do
+    ((a++))
+    b=0
+    cl=$(sed $a'!d' $path)
+    fun=
+    while :; do
+      ((b++))
+      cchar
+      if [ "$l" == "." ]; then
+        break
+      fi
+      fun+=$l
+    done
+    echo $
+    if [ $a -gt $length ]; then
+      break
+    fi
+  done
+else
+  echo "bari: missing operand"
+  echo "Usage: bari [args] [FILE]"
+  echo
+  echo "  --help      Show this help screen"
+fi
