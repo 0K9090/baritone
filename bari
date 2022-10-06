@@ -1,27 +1,263 @@
+ver=1.0.0
+if [ "h$1" == "h-vh" ]; then
+  if [ -f ver ]; then
+    rm ver
+  fi
+  echo >>ver $ver
+  exit
+elif [ "h$1" == "h-v" ]; then
+  echo "$ver"
+  exit
+fi
+BLPATH=/usr/lib/bari$ver
 #define functions
-cchar() {
-  l={cl:$c:1}
+cchar() { #get char $b of $cl
+  l=${cl:$(expr $b - 1):1}
 }
+nb() {
+  while :; do
+    ((b++))
+    cchar
+    if [ "$l" == "$1" ]; then
+      break
+    fi
+  done
+}
+decomp() {
+  ctr=
+  noe=0
+  if [ $1 == terminal ]; then
+    fun=
+    while :; do
+      ((b++))
+      cchar
+      if [ "$l" == "(" ]; then
+        break
+      fi
+      fun+=$l
+    done
+    if [ "$fun" == "update" ]; then
+      ((b++))
+      while :; do
+        fun=
+        while :; do
+          ((b++))
+          cchar
+          if [ "$l" == "," ]; then
+            break
+          fi
+          fun+=$l
+        done
+        if [ "$fun" == "n" ]; then
+          noe=1
+        fi
+        ((b++))
+        cchar
+        if [ "$l" == "]" ]; then
+          break
+        fi
+      done
+      cchar
+      fun=
+      while :; do
+        ((b++))
+        cchar
+        if [ "$l" == ")" ]; then
+          break
+        fi
+        fun+=$l
+      done
+    fi
+    if [ "$mode" == "cmp" ]; then
+      if [ $noe == 0 ]; then
+        echo >>$e2.sh "$sp""echo -e \"\\033[A\"$fun"
+      else
+        echo >>$e2.sh "$sp""echo $fun"
+      fi
+      sp=
+    elif [ "$mode" == "int" ]; then
+      fun=$(echo "$fun" | tr -d '"')
+      if [ $noe == 0 ]; then
+        ctr="echo -e \\033[A$fun"
+      else
+        ctr="echo $fun"
+      fi
+      if [ "h$2" == hisc ]; then
+        ise+="$ctr; "
+      else
+        ${ctr}
+      fi
+    fi
+  elif [ $1 == "if" ]; then
+    nb \[
+    ((b++))
+    cchar
+    if ! [ "$l" == "\"" ]; then
+      ((b--))
+      fun=
+      while :; do
+        ((b++))
+        cchar
+        if [ "$l" == " " ]; then
+          break
+        fi
+        fun+=$l
+      done
+      op1="\$$fun"
+    else
+      fun=
+      while :; do
+        ((b++))
+        cchar
+        if [ "$l" == "\"" ]; then
+          break
+        fi
+        fun+=$l
+      done
+      ((b++))
+      op1="\"$fun\""
+    fi
+    ((b++))
+    cchar
+    if [ $l == "=" ]; then
+      condition=" == "
+    fi
+    ((b++))
+    ((b++))
+    cchar
+    if ! [ "$l" == "\"" ]; then
+      ((b--))
+      fun=
+      while :; do
+        ((b++))
+        cchar
+        if [ "$l" == "]" ]; then
+          break
+        fi
+        fun+=$l
+      done
+      op2="\$$fun"
+    else
+      fun=
+      while :; do
+        ((b++))
+        cchar
+        if [ "$l" == "\"" ]; then
+          break
+        fi
+        fun+=$l
+      done
+      ((b++))
+      op2="\"$fun\""
+    fi
+    ((b++))
+    cchar
+    if ! [ $l == ":" ]; then
+      echo
+    else
+      if [ $mode == cmp ]; then
+        echo >>$e2.sh "if [ $op1$condition$op2 ]; then"
+      elif [ $mode == int ]; then
+        ise="if [ $op1$condition$op2 ]; then "
+      fi
+      while :; do
+        ((a++))
+        if [ $a -gt $length ]; then
+          echo "bari: unexpected end of file"
+          exit
+        fi
+        b=0
+        cl=$(sed $a'!d' $path)
+        if [ "$cl" == "};" ]; then
+          break
+        fi
+        b=0
+        sp=
+        while :; do
+          ((b++))
+          cchar
+          if ! [ "$l" == " " ]; then
+            break
+          fi
+          sp+=" "
+        done
+        ((b--))
+        fun=
+        while :; do
+          ((b++))
+          cchar
+          if [ "$l" == "." ] || [ "$l" == " " ]; then
+            break
+          fi
+          fun+=$l
+        done
+        decomp $fun isc
+      done
+      if [ $mode == cmp ]; then
+        echo >>$e2.sh "fi"
+      elif [ $mode == int ]; then
+        ise+="fi"
+        echo "$ise"
+        exec $ise
+      fi
+    fi
+  fi
+}
+#main code
 if [ "$1" == --help ]; then
   echo "Usage: bari [args] [FILE]"
   echo
   echo "  --help      Show this help screen"
   exit
 fi
-if [ h"$2" == h ]; then
-  path=$1
-else
-  #arg scripts here
+path=$1
+f=0
+case "$1" in
+-d)
+  f=1
   path=$2
+  ;;
+-m)
+  if [ h"$3" == "h" ]; then
+    if [ "h$2" == "h" ]; then
+      echo "bari: missing arguments for: -m"
+      exit
+    fi
+    if [ -f $BLPATH/variables/mode ]; then
+      rm $BLPATH/variables/mode
+    fi
+    if [ "$2" == cmp ] || [ "$2" == int ]; then
+      echo >>$BLPATH/variables/mode "$2"
+    else
+      echo "bari: not a mode"
+    fi
+    exit
+  fi
+  if [ -f $BLPATH/variables/mode ]; then
+    rm $BLPATH/variables/mode
+  fi
+  if [ "$2" == cmp ] || [ "$2" == int ]; then
+    echo >>$BLPATH/variables/mode "$2"
+  else
+    echo "bari: not a mode"
+  fi
+  path=$3
+  ;;
+esac
+mode=$(sed '1!d' $BLPATH/variables/mode)
+if [ "h$d" == h1 ]; then
+  mode=cmp
 fi
 if ! [ h"$path" == h ]; then
   if ! [ -f $path ]; then
     echo "bari: file doesn't exist"
+    echo $path
     exit
   fi
   while :; do
     e="${path#*.}"
-    if ! [[ "$e" == *"."* ]]; then
+    e2="${path%.*}"
+    if ! [[ "$e $e2" == *"."* ]]; then
       break
     fi
   done
@@ -31,29 +267,64 @@ if ! [ h"$path" == h ]; then
     echo "  Your file extention: $e"
     exit
   fi
+  if [ $mode == cmp ]; then
+    if [ -f "$e2.sh" ]; then
+      echo "$e2.sh already exists. Replace? [Y/N]"
+      read -sn 1 nn
+      if [ "h$nn" == hy ] || [ "h$nn" == hY ]; then
+        rm $e2.sh
+      elif [ "h$nn" == hn ] || [ "h$nn" == hn ]; then
+        exit
+      fi
+    fi
+  fi
   a=0
   length=$(sed -n '$=' $path)
+  echo
   while :; do
     ((a++))
+    if [ $a -gt $length ]; then
+      break
+    fi
     b=0
     cl=$(sed $a'!d' $path)
+    b=0
+    sp=
+    while :; do
+      ((b++))
+      cchar
+      if ! [ "$l" == " " ]; then
+        break
+      fi
+      sp+=" "
+    done
+    ((b--))
     fun=
     while :; do
       ((b++))
       cchar
-      if [ "$l" == "." ]; then
+      if [ "$l" == "." ] || [ "$l" == " " ]; then
         break
       fi
       fun+=$l
     done
-    echo $
-    if [ $a -gt $length ]; then
-      break
-    fi
+    decomp $fun
   done
+  if [ "$mode" == cmp ]; then
+    if ! [ "h$f" == "h1" ]; then
+      ./$e2.sh
+      rm $e2.sh
+    fi
+  fi
 else
   echo "bari: missing operand"
   echo "Usage: bari [args] [FILE]"
   echo
-  echo "  --help      Show this help screen"
+  echo "  --help                Show this help screen"
+  echo "  -d                    Decompile into Shell Script"
+  echo "  -m [MODE]             Set the execution mode"
+  echo "      Modes:"
+  echo "      cmp               Compile the script, then run it"
+  echo "      int (default)     Run the script line by line"
+  echo "  -v                    Get the version of bari"
 fi

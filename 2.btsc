@@ -1,0 +1,9 @@
+terminal.update([,]"Hello World")
+terminal.update([,]"hehehe haw")
+terminal.update([n,]"NOOOOOOOOOo")
+if ["1" = "2"]: {
+  terminal.update([n,]"This script shouldn't run.")
+};
+if ["1" = "1"]: {
+  terminal.update([n,]"This script should run.")
+};

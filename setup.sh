@@ -1,4 +1,13 @@
 cp bari /usr/bin
+bari -vh
+ver=$(sed '1!d' ver)
+rm ver
+cd /usr/lib
+mkdir bari$ver
+cd bari$ver
+mkdir variables
+cd variables
+echo >>mode "int"
 if [ 1 == 2 ]; then
 echo "Which are you using?"
 echo
