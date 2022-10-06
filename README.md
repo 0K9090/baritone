@@ -1,5 +1,5 @@
 # bari
-Baritone programming language
+Baritone programming language, plus Saxophone package manager
 ## How to install
 The only way right now is to run
 ```

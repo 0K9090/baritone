@@ -6,6 +6,7 @@ if ["1" = "2"]: {
 if ["1" = "1"]: {
   terminal.update([n,]"This script should run.")
 };
+system.exec(echo "ERROR: NO ERROR")
 def.var test="chicken"
 terminal.update([n,]test)
 edit.var test="nuggets"
